@@ -72,17 +72,17 @@ jobs:
       - name: Pack NuGet package
         run: dotnet pack HelloGitHubActions.App/HelloGitHubActions.App.csproj -c Release -o ./nuget-packages
 
-      # Step 12: Upload NuGet package
+      # Step 12: Upload NuGet package as artifact
       - name: Upload NuGet package
         uses: actions/upload-artifact@v4
         with:
           name: NuGetPackage
           path: nuget-packages/*.nupkg
 
-      # Step 13: Reset NuGet sources (force v3)
-      - name: Reset NuGet sources
+      # Step 13: Clear global NuGet config and add v3 source only
+      - name: Configure NuGet source
         run: |
-          dotnet nuget remove source nuget.org || true
+          rm -rf ~/.nuget/NuGet/NuGet.Config
           dotnet nuget add source "https://api.nuget.org/v3/index.json" --name nuget.org
           dotnet nuget list source
 
@@ -91,17 +91,8 @@ jobs:
         env:
           NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
         run: |
-          echo "Cleaning NuGet sources..."
-          dotnet nuget list source
-          dotnet nuget remove source nuget.org || true
-          dotnet nuget remove source nuget || true
-          dotnet nuget remove source nuget.org/api/v2/package || true
-          dotnet nuget add source "https://api.nuget.org/v3/index.json" --name nuget.org
-          echo "New NuGet sources configured:"
-          dotnet nuget list source
-
-          echo "Pushing package..."
+          echo "Pushing package to NuGet.org (v3 endpoint)..."
           dotnet nuget push "nuget-packages/*.nupkg" \
             --api-key "$NUGET_API_KEY" \
-            --source "nuget.org" \
+            --source "https://api.nuget.org/v3/index.json" \
             --skip-duplicate
