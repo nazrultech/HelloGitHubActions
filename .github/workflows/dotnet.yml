@@ -23,27 +23,31 @@ jobs:
         with:
           dotnet-version: '8.0.x'
 
-      # Step 3: Restore dependencies
+      # Step 3: Authenticate with NuGet (optional but recommended)
+      - name: Authenticate with NuGet
+        run: dotnet nuget update source nuget.org --username ${{ github.actor }} --password ${{ secrets.NUGET_API_KEY }} --store-password-in-clear-text
+
+      # Step 4: Restore dependencies
       - name: Restore dependencies
         run: dotnet restore
 
-      # Step 4: Build solution
+      # Step 5: Build solution
       - name: Build solution
         run: dotnet build --configuration Release --no-restore
 
-      # Step 5: Run tests with code coverage
+      # Step 6: Run tests with code coverage
       - name: Run tests and collect coverage
         run: dotnet test --configuration Release --no-build --collect:"XPlat Code Coverage" --results-directory ./TestResults
 
-      # Step 6: Install ReportGenerator
+      # Step 7: Install ReportGenerator
       - name: Install ReportGenerator
         run: dotnet tool install --global dotnet-reportgenerator-globaltool
 
-      # Step 7: Add .NET tools to PATH
+      # Step 8: Add .NET tools to PATH
       - name: Add .NET tools to PATH
         run: echo "$HOME/.dotnet/tools" >> $GITHUB_PATH
 
-      # Step 8: Generate coverage report
+      # Step 9: Generate coverage report
       - name: Generate coverage report
         run: |
           mkdir -p coverage-report
@@ -52,7 +56,7 @@ jobs:
             "-targetdir:coverage-report" \
             -reporttypes:Html
 
-      # Step 9: Upload test results & coverage report
+      # Step 10: Upload test results & coverage report
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
@@ -61,35 +65,23 @@ jobs:
             TestResults/
             coverage-report/
 
-      # Step 10: Create NuGet package
+      # Step 11: Create NuGet package
       - name: Pack NuGet package
         run: dotnet pack HelloGitHubActions.App/HelloGitHubActions.App.csproj -c Release -o ./nuget-packages
 
-      # Step 11: Upload NuGet package as an artifact
+      # Step 12: Upload NuGet package as an artifact
       - name: Upload NuGet package
         uses: actions/upload-artifact@v4
         with:
           name: NuGetPackage
           path: nuget-packages/*.nupkg
 
-      # Step 12a: Publish package to NuGet.org
-      - name: Publish to NuGet.org
-        if: github.ref == 'refs/heads/main'
+      # Step 13: Publish package to NuGet.org
+      - name: Publish package to NuGet
         env:
           NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
         run: |
           dotnet nuget push "nuget-packages/*.nupkg" \
             --api-key $NUGET_API_KEY \
             --source "https://api.nuget.org/v3/index.json" \
-            --skip-duplicate
-
-      # Step 12b: Publish package to GitHub Packages
-      - name: Publish to GitHub Packages
-        if: github.ref == 'refs/heads/main'
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          dotnet nuget push "nuget-packages/*.nupkg" \
-            --api-key $GITHUB_TOKEN \
-            --source "https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json" \
             --skip-duplicate
