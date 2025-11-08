@@ -1,0 +1,15 @@
+D:\DeVOpsPractices\HelloGitHubActions\HelloGitHubActions.App\bin\Debug\net8.0\HelloGitHubActions.App.exe
+D:\DeVOpsPractices\HelloGitHubActions\HelloGitHubActions.App\bin\Debug\net8.0\HelloGitHubActions.App.deps.json
+D:\DeVOpsPractices\HelloGitHubActions\HelloGitHubActions.App\bin\Debug\net8.0\HelloGitHubActions.App.runtimeconfig.json
+D:\DeVOpsPractices\HelloGitHubActions\HelloGitHubActions.App\bin\Debug\net8.0\HelloGitHubActions.App.dll
+D:\DeVOpsPractices\HelloGitHubActions\HelloGitHubActions.App\bin\Debug\net8.0\HelloGitHubActions.App.pdb
+D:\DeVOpsPractices\HelloGitHubActions\HelloGitHubActions.App\obj\Debug\net8.0\HelloGitHubActions.App.GeneratedMSBuildEditorConfig.editorconfig
+D:\DeVOpsPractices\HelloGitHubActions\HelloGitHubActions.App\obj\Debug\net8.0\HelloGitHubActions.App.AssemblyInfoInputs.cache
+D:\DeVOpsPractices\HelloGitHubActions\HelloGitHubActions.App\obj\Debug\net8.0\HelloGitHubActions.App.AssemblyInfo.cs
+D:\DeVOpsPractices\HelloGitHubActions\HelloGitHubActions.App\obj\Debug\net8.0\HelloGitHubActions.App.csproj.CoreCompileInputs.cache
+D:\DeVOpsPractices\HelloGitHubActions\HelloGitHubActions.App\obj\Debug\net8.0\HelloGitHubActions.App.sourcelink.json
+D:\DeVOpsPractices\HelloGitHubActions\HelloGitHubActions.App\obj\Debug\net8.0\HelloGitHubActions.App.dll
+D:\DeVOpsPractices\HelloGitHubActions\HelloGitHubActions.App\obj\Debug\net8.0\refint\HelloGitHubActions.App.dll
+D:\DeVOpsPractices\HelloGitHubActions\HelloGitHubActions.App\obj\Debug\net8.0\HelloGitHubActions.App.pdb
+D:\DeVOpsPractices\HelloGitHubActions\HelloGitHubActions.App\obj\Debug\net8.0\HelloGitHubActions.App.genruntimeconfig.cache
+D:\DeVOpsPractices\HelloGitHubActions\HelloGitHubActions.App\obj\Debug\net8.0\ref\HelloGitHubActions.App.dll
