@@ -1,4 +1,4 @@
-name: .NET Build & Test with Coverage
+name: .NET CI Pipeline
 
 on:
   push:
@@ -7,43 +7,66 @@ on:
     branches: [ main ]
 
 jobs:
-  build-test:
+  build-test-coverage:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
+      # Step 1: Pull latest code
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Ensures full history (useful for versioning)
 
-    - name: Setup .NET
-      uses: actions/setup-dotnet@v4
-      with:
-        dotnet-version: '8.0.x'
+      # Step 2: Set up .NET SDK
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
 
-    - name: Restore dependencies
-      run: dotnet restore
+      # Step 3: Restore dependencies
+      - name: Restore dependencies
+        run: dotnet restore
 
-    - name: Build
-      run: dotnet build --no-restore --configuration Release
+      # Step 4: Build the solution
+      - name: Build solution
+        run: dotnet build --configuration Release --no-restore
 
-    - name: Run tests with coverage
-      run: dotnet test --no-build --collect:"XPlat Code Coverage" --results-directory ./TestResults
+      # Step 5: Run tests with coverage
+      - name: Run tests and collect coverage
+        run: dotnet test --configuration Release --no-build --collect:"XPlat Code Coverage" --results-directory ./TestResults
 
-    - name: Install ReportGenerator
-      run: dotnet tool install --global dotnet-reportgenerator-globaltool
+      # Step 6: Install ReportGenerator (for coverage HTML report)
+      - name: Install ReportGenerator tool
+        run: dotnet tool install --global dotnet-reportgenerator-globaltool
 
-    - name: Add .NET tools to PATH
-      run: echo "$HOME/.dotnet/tools" >> $GITHUB_PATH
+      # Step 7: Add .NET tools to PATH (so GitHub runner can find reportgenerator)
+        # This line ensures the tool is executable in subsequent steps
+      - name: Add .NET tools to PATH
+        run: echo "$HOME/.dotnet/tools" >> $GITHUB_PATH
 
-    - name: Generate coverage report
-      run: |
-        mkdir -p coverage-report
-        reportgenerator \
-          -reports:TestResults/**/coverage.cobertura.xml \
-          -targetdir:coverage-report \
-          -reporttypes:Html
+      # Step 8: Generate code coverage report (HTML)
+      - name: Generate coverage report
+        run: |
+          mkdir -p coverage-report
+          reportgenerator \
+            "-reports:TestResults/**/coverage.cobertura.xml" \
+            "-targetdir:coverage-report" \
+            -reporttypes:Html
 
-    - name: Upload coverage report artifact
-      uses: actions/upload-artifact@v4
-      with:
-        name: coverage-report
-        path: coverage-report
+      # Step 9: Upload coverage report as build artifact
+      - name: Upload coverage report artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Code-Coverage-Report
+          path: coverage-report/
+
+      # Step 10: Upload test results
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
+        with:
+          name: TestResults
+          path: TestResults/
+
+      # Step 11: (Optional) Print success message
+      - name: Build complete
+        run: echo "✅ Build, Test, and Coverage completed successfully!"
