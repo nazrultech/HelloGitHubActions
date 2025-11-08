@@ -76,12 +76,16 @@ jobs:
           name: NuGetPackage
           path: nuget-packages/*.nupkg
 
+      # Debug: confirm correct feed
+      - name: List NuGet sources (debug)
+        run: dotnet nuget list source
+
       # Step 13: Publish package to NuGet.org
       - name: Publish package to NuGet
         env:
           NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
         run: |
           dotnet nuget push "nuget-packages/*.nupkg" \
-            --api-key $NUGET_API_KEY \
+            --api-key "$NUGET_API_KEY" \
             --source "https://api.nuget.org/v3/index.json" \
             --skip-duplicate
