@@ -100,7 +100,7 @@ jobs:
             --source "https://api.nuget.org/v3/index.json" \
             --skip-duplicate
 
-      # ✅ Step 15: Verify package published on NuGet.org
+      # Step 15: Verify package published on NuGet.org
       - name: Verify package on NuGet.org
         run: |
           PACKAGE_NAME="HelloGitHubActions.App"
@@ -108,5 +108,5 @@ jobs:
           echo "Checking if $PACKAGE_NAME v$VERSION exists on NuGet.org..."
           sleep 20  # give NuGet time to index the package
           curl -s "https://api-v2v3search-0.nuget.org/query?q=$PACKAGE_NAME&prerelease=false" | grep -q "$PACKAGE_NAME" && \
-          echo "✅ Package $PACKAGE_NAME v$VERSION found on NuGet.org!" || \
-          (echo "❌ Package not yet visible on NuGet.org — it may take a few minutes to appear." && exit 0)
+          echo "Package $PACKAGE_NAME v$VERSION found on NuGet.org!" || \
+          (echo "Package not yet visible on NuGet.org — it may take a few minutes to appear." && exit 0)
