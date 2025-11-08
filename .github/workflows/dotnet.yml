@@ -72,8 +72,8 @@ jobs:
           name: NuGetPackage
           path: nuget-packages/*.nupkg
 
-      # Step 12 (Optional): Publish to NuGet.org (only on main)
-      - name: Publish package to NuGet.org
+      # Step 12a: Publish package to NuGet.org
+      - name: Publish to NuGet.org
         if: github.ref == 'refs/heads/main'
         env:
           NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
@@ -81,4 +81,15 @@ jobs:
           dotnet nuget push "nuget-packages/*.nupkg" \
             --api-key $NUGET_API_KEY \
             --source "https://api.nuget.org/v3/index.json" \
-            --skip-duplicate        
+            --skip-duplicate
+
+      # Step 12b: Publish package to GitHub Packages
+      - name: Publish to GitHub Packages
+        if: github.ref == 'refs/heads/main'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          dotnet nuget push "nuget-packages/*.nupkg" \
+            --api-key $GITHUB_TOKEN \
+            --source "https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json" \
+            --skip-duplicate
