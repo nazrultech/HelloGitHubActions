@@ -1,0 +1,112 @@
+name: .NET CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build-test-package:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Step 1: Checkout code
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      # Step 2: Setup .NET SDK
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      # Step 3: Restore dependencies
+      - name: Restore dependencies
+        run: dotnet restore
+
+      # Step 4: Build solution
+      - name: Build solution
+        run: dotnet build --configuration Release --no-restore
+
+      # Step 5: Run tests with coverage
+      - name: Run tests and collect coverage
+        run: dotnet test --configuration Release --no-build --collect:"XPlat Code Coverage" --results-directory ./TestResults
+
+      # Step 6: Install ReportGenerator
+      - name: Install ReportGenerator
+        run: dotnet tool install --global dotnet-reportgenerator-globaltool
+
+      # Step 7: Add .NET tools to PATH
+      - name: Add .NET tools to PATH
+        run: echo "$HOME/.dotnet/tools" >> $GITHUB_PATH
+
+      # Step 8: Generate coverage report
+      - name: Generate coverage report
+        run: |
+          mkdir -p coverage-report
+          reportgenerator \
+            "-reports:TestResults/**/coverage.cobertura.xml" \
+            "-targetdir:coverage-report" \
+            -reporttypes:Html
+
+      # Step 9: Upload test & coverage artifacts
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: TestAndCoverageReports
+          path: |
+            TestResults/
+            coverage-report/
+
+      # Step 10: Auto-versioning
+      - name: Auto-version package
+        run: |
+          VERSION="1.0.${{ github.run_number }}"
+          echo "Package Version: $VERSION"
+          sed -i "s#<Version>.*</Version>#<Version>$VERSION</Version>#" HelloGitHubActions.App/HelloGitHubActions.App.csproj
+
+      # Step 11: Create NuGet package
+      - name: Pack NuGet package
+        run: dotnet pack HelloGitHubActions.App/HelloGitHubActions.App.csproj -c Release -o ./nuget-packages
+
+      # Step 12: Upload NuGet package
+      - name: Upload NuGet package
+        uses: actions/upload-artifact@v4
+        with:
+          name: NuGetPackage
+          path: nuget-packages/*.nupkg
+
+      # Step 13: Configure NuGet source
+      - name: Configure NuGet source
+        run: |
+          echo "Resetting NuGet sources..."
+          dotnet nuget list source || true
+          dotnet nuget remove source nuget.org || true
+          dotnet nuget remove source nuget || true
+          dotnet nuget add source "https://api.nuget.org/v3/index.json" --name nuget.org
+          dotnet nuget list source
+
+      # Step 14: Publish package to NuGet.org
+      - name: Publish package to NuGet
+        env:
+          NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
+        run: |
+          echo "Publishing package to NuGet.org..."
+          dotnet nuget push "nuget-packages/*.nupkg" \
+            --api-key "$NUGET_API_KEY" \
+            --source "https://api.nuget.org/v3/index.json" \
+            --skip-duplicate
+
+      # ✅ Step 15: Verify package published on NuGet.org
+      - name: Verify package on NuGet.org
+        run: |
+          PACKAGE_NAME="HelloGitHubActions.App"
+          VERSION="1.0.${{ github.run_number }}"
+          echo "Checking if $PACKAGE_NAME v$VERSION exists on NuGet.org..."
+          sleep 20  # give NuGet time to index the package
+          curl -s "https://api-v2v3search-0.nuget.org/query?q=$PACKAGE_NAME&prerelease=false" | grep -q "$PACKAGE_NAME" && \
+          echo "✅ Package $PACKAGE_NAME v$VERSION found on NuGet.org!" || \
+          (echo "❌ Package not yet visible on NuGet.org — it may take a few minutes to appear." && exit 0)
