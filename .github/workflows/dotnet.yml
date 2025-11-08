@@ -79,10 +79,13 @@ jobs:
           name: NuGetPackage
           path: nuget-packages/*.nupkg
 
-      # Step 13: Clear global NuGet config and add v3 source only
+       # Step 13: Configure NuGet source (robust version)
       - name: Configure NuGet source
         run: |
-          rm -rf ~/.nuget/NuGet/NuGet.Config
+          echo "Resetting NuGet sources..."
+          dotnet nuget list source || true
+          dotnet nuget remove source nuget.org || true
+          dotnet nuget remove source "nuget" || true
           dotnet nuget add source "https://api.nuget.org/v3/index.json" --name nuget.org
           dotnet nuget list source
 
@@ -91,7 +94,7 @@ jobs:
         env:
           NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
         run: |
-          echo "Pushing package to NuGet.org (v3 endpoint)..."
+          echo "Publishing package to NuGet.org..."
           dotnet nuget push "nuget-packages/*.nupkg" \
             --api-key "$NUGET_API_KEY" \
             --source "https://api.nuget.org/v3/index.json" \
