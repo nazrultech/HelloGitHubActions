@@ -91,7 +91,17 @@ jobs:
         env:
           NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
         run: |
+          echo "Cleaning NuGet sources..."
+          dotnet nuget list source
+          dotnet nuget remove source nuget.org || true
+          dotnet nuget remove source nuget || true
+          dotnet nuget remove source nuget.org/api/v2/package || true
+          dotnet nuget add source "https://api.nuget.org/v3/index.json" --name nuget.org
+          echo "New NuGet sources configured:"
+          dotnet nuget list source
+
+          echo "Pushing package..."
           dotnet nuget push "nuget-packages/*.nupkg" \
             --api-key "$NUGET_API_KEY" \
-            --source "https://api.nuget.org/v3/index.json" \
+            --source "nuget.org" \
             --skip-duplicate
